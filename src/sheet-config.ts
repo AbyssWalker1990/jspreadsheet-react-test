@@ -225,17 +225,4 @@ export const sheetConfig: any = {
     },
   },
   minDimensions: [5, 8],
-
-  // fire when cells are changed
-  onafterchanges: (
-    instance: any,
-    changes: Array<{ x: number; y: number; value: any; oldValue: any }>
-  ) => {
-    changes.forEach((chg) => {
-      const col = instance.getColumnName(chg.x);
-      const cell = `${col}${chg.y + 1}`;
-      const meta = instance.getMeta(cell);
-      console.log('cell changed', cell, 'new value', chg.value, 'meta', meta);
-    });
-  },
 };
