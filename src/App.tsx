@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { Spreadsheet, Worksheet } from '@jspreadsheet-ce/react';
 import 'jsuites/dist/jsuites.css';
 import 'jspreadsheet-ce/dist/jspreadsheet.css';
-import { sheetConfig } from './sheet-config';
+import { sheetConfig } from './sheet-config-old';
 
 export default function App() {
   const spreadsheet = useRef<any>(null);
