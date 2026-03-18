@@ -5,7 +5,7 @@ import 'jspreadsheet-ce/dist/jspreadsheet.css';
 import { sheetConfig as localSheetConfig } from './sheet-config';
 
 const ROADMAP_URL =
-  'http://localhost:3000/api/v1/agro-programs/d81310f0-7ee9-45ff-b3fb-595c44330e09/roadmap';
+  'http://localhost:3000/api/v1/agro-programs/33101df9-65cb-4d41-9155-2d7ed5260a03/roadmap';
 
 const getLocalSheetConfig = async () => localSheetConfig.worksheets;
 
@@ -30,8 +30,15 @@ const sheetConfigLoaders = {
 
 export default function App() {
   const spreadsheet = useRef<any>(null);
+  const cellMappingsRef = useRef<Record<string, string[]>[]>([]);
   const [worksheets, setWorksheets] = useState<any[] | null>(null);
   const [activeSource, setActiveSource] = useState<'remote' | 'local' | 'loading'>('loading');
+
+  const stripCellMappings = (raw: any[]) => {
+    cellMappingsRef.current = raw.map((ws: any) => ws.cellMapping ?? {});
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return raw.map(({ cellMapping: _, ...config }: any) => config);
+  };
 
   const colIndexToLetter = (idx: number) => {
     let s = '';
@@ -67,13 +74,13 @@ export default function App() {
       try {
         const nextConfig = await loadSheetConfig();
         if (isMounted) {
-          setWorksheets(nextConfig);
+          setWorksheets(stripCellMappings(nextConfig));
           setActiveSource(sheetConfigSource);
         }
       } catch (error) {
         console.error('Unable to load remote sheetConfig, using local fallback.', error);
         if (isMounted) {
-          setWorksheets(localSheetConfig.worksheets);
+          setWorksheets(stripCellMappings(localSheetConfig.worksheets));
           setActiveSource('local');
         }
       }
@@ -90,6 +97,17 @@ export default function App() {
     }
 
     if (spreadsheet.current) {
+      // Apply cell-level readOnly based on cellMapping
+      (spreadsheet.current as any[]).forEach((sheet, idx) => {
+        const mapping = cellMappingsRef.current[idx];
+        if (!mapping) return;
+        Object.entries(mapping).forEach(([key, cells]) => {
+          if (key !== 'taskItems') {
+            (cells as string[]).forEach((cell) => sheet.setReadOnly(cell, true));
+          }
+        });
+      });
+
       const sheet: any = spreadsheet.current[0];
       console.log('initial meta C4', sheet.getMeta('C4'));
 
